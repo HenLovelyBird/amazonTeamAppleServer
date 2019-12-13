@@ -60,26 +60,35 @@ const readAllFile = async ()=>{
   }
 
 
-router.put("/:id", async (req, res) =>{
-    let allProducts = await readAllFile();
 
-    let product = allProducts.find(oneProduct => oneProduct._id == req.params.id)
+
+  
+
+
+
+
+
+router.put("/:id", async (req, res) =>{  
+    
+    
+    var allProducts = await readAllFile();
+
+    let product = allProducts.find(oneProduct => oneProduct._id == req.params.id);
     if (product){
-        let mergedProduct = Object.assign(product, req.body)
-        let postionOfProduct = allProducts.indexOf(product)
-        allProducts[postionOfProduct] = mergedProduct
-        await writeFile(filePath, JSON.stringify(this.allProducts));
-        res.send(mergedProduct);
+       
+
+         let mergedProduct = Object.assign(product, req.body);
+         let postionOfProduct = allProducts.indexOf(product);
+         allProducts[postionOfProduct] = mergedProduct;
+         await writeFile(filePath, JSON.stringify(allProducts));         
+         res.send(mergedProduct);
 
     }
+     else{
+        res.status(404).send("Not Found bro...damn it!!!");
+ }
 
-    else{
-        res.status(404).send("Not Found bro...damn it!!!") 
-
-}
-
-
-})
+ })
 
 
 
