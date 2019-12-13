@@ -33,53 +33,56 @@ router.get('/:id', async (req, res)=>{
 });  
 
 var upload = multer({});
-router.post("/", upload.none(), async (req, res) => {
-  const buffer = await readFile(filePath);
-  const fileContent = buffer.toString();
-  const productsArray = JSON.parse(fileContent);
+router.post("/", upload.single("productImg"), async (req, res) => {
+  const newID = uuidv1();
+  const { originalname, buffer } = req.file;
+  const ext = path.extname(originalname);
+  const ImgNameToBeSaved = newID.concat(ext);
+  let ImgFilePath = path.join(__dirname, "img", ImgNameToBeSaved);
+  await writeFile(ImgFilePath, buffer);
+  let allProducts = await readAllFile();
   let newProduct = {
     ...req.body,
-    _id: uuidv1(),
+    image: ImgFilePath,
+    _id: newID,
     createdAt: new Date()
   };
-  productsArray.push(newProduct);
-  const newProductbuffer = JSON.stringify(productsArray);
+  allProducts.push(newProduct);
+  const newProductbuffer = JSON.stringify(allProducts);
   await writeFile(filePath, newProductbuffer);
   res.send(newProduct);
-
 });
-
-
-
-
 
 const readAllFile = async ()=>{ 
     const buffer = await readFile(filePath)  
     const content = buffer.toString();
     return JSON.parse(content)
+  };
+
+router.put("/:id", upload.single("productImg"), async (req, res) => {
+
+  let allProducts = await readAllFile();
+  let product = allProducts.find(oneProduct => oneProduct._id == req.params.id);
+  if (product) {    
+    const { originalname, buffer } = req.file;
+    const ext = path.extname(originalname);
+    const ImgNameToBeSaved = req.params.id.concat(ext);
+    let ImgFilePath = path.join(__dirname, "img", ImgNameToBeSaved);
+    await writeFile(ImgFilePath, buffer);
+    let updatedProduct = {
+        ...req.body,
+        image: ImgFilePath,
+        updatedAt: new Date()
+      };
+    let mergedProduct = Object.assign(product, updatedProduct);
+    let postionOfProduct = allProducts.indexOf(product);
+    allProducts[postionOfProduct] = mergedProduct;
+    await writeFile(filePath, JSON.stringify(allProducts));
+    res.send(mergedProduct);
+  } else {
+    res.status(404).send("Not Found bro...damn it!!!");
   }
-
-
-router.put("/:id", async (req, res) =>{
-    let allProducts = await readAllFile();
-
-    let product = allProducts.find(oneProduct => oneProduct._id == req.params.id)
-    if (product){
-        let mergedProduct = Object.assign(product, req.body)
-        let postionOfProduct = allProducts.indexOf(product)
-        allProducts[postionOfProduct] = mergedProduct
-        await writeFile(filePath, JSON.stringify(this.allProducts));
-        res.send(mergedProduct);
-
-    }
-
-    else{
-        res.status(404).send("Not Found bro...damn it!!!") 
-
-}
-
-
-})
+});
 
 
 
