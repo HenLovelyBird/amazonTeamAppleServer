@@ -60,26 +60,24 @@ const readAllFile = async ()=>{
   }
 
 
-
-
-  
-
-
-
-
-
 router.put("/:id", async (req, res) =>{  
-    
-    
+
     var allProducts = await readAllFile();
 
     let product = allProducts.find(oneProduct => oneProduct._id == req.params.id);
     if (product){
        
+        let newProduct = {
+            ...req.body,
+           
+            UpdatedAt: new Date()
+          };
 
-         let mergedProduct = Object.assign(product, req.body);
+         let mergedProduct = Object.assign(product, newProduct);
          let postionOfProduct = allProducts.indexOf(product);
          allProducts[postionOfProduct] = mergedProduct;
+
+         
          await writeFile(filePath, JSON.stringify(allProducts));         
          res.send(mergedProduct);
 
