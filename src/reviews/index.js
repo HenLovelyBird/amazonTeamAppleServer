@@ -1,10 +1,9 @@
 const express = require("express");
-const { readFile, writeFile } = require("fs-extra");
-const path = require("path");
 const router = express.Router();
+const path = require("path");
 const filePath = path.join(__dirname, "reviews.json");
-
-
+const { readFile, writeFile} = require("fs-extra");
+const uuidv1 = require("uuid/v1");
 
 
 const readAllFile = async ()=>{ 
@@ -78,6 +77,33 @@ router.delete("/:id", async (req,res)=>{
  
  
  })
+
+
+
+
+router.put('/:id', async (req, res) => {
+    const modifyReview = req.body;
+    const buffer = await readFile(filePath);
+    const fileContent = buffer.toString();
+    let reviewsArray = JSON.parse(fileContent);
+    await writeFile(filePath, JSON.stringify(reviewsArray));
+    res.send(modifyReview);
+});
+
+router.post('/', async (req, res) =>{
+    const buffer = await readFile(filePath);
+    const fileContent = buffer.toString();
+    let reviewsArray = JSON.parse(fileContent);
+    const newReview = {
+        ...req.body,
+        _id: uuidv1(), 
+        createdat: new Date()
+    };
+    reviewsArray.push(newReview);
+    await writeFile(filePath, JSON.stringify(reviewsArray));
+    res.status(201).send(`${newReview._id}`);
+});
+
 
 
 module.exports = router;
