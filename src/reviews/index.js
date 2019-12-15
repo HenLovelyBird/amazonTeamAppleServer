@@ -59,13 +59,21 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
-  const modifyReview = req.body;
+router.put("/:id", async (req, res) => { 
   const buffer = await readFile(filePath);
   const fileContent = buffer.toString();
   let reviewsArray = JSON.parse(fileContent);
-  await writeFile(filePath, JSON.stringify(reviewsArray));
-  res.send(modifyReview);
+  let singleReview = reviewsArray.find(aReview => aReview._id == req.params.id);
+  if (singleReview) {
+      let modifyReview = Object.assign(singleReview, req.body);
+      let positionOfReview = reviewsArray.indexOf(singleReview);
+      reviewsArray[positionOfReview] = modifyReview;
+      await writeFile(filePath, JSON.stringify(reviewsArray));
+      res.send(modifyReview);
+  } else {
+      res.status(404).send("Review not found!");
+  }
+  
 });
 
 router.post("/", async (req, res) => {
@@ -81,5 +89,7 @@ router.post("/", async (req, res) => {
   await writeFile(filePath, JSON.stringify(reviewsArray));
   res.status(201).send(`${newReview._id}`);
 });
+
+
 
 module.exports = router;
